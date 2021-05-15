@@ -14,6 +14,32 @@ parser.add_argument('origin_path',type=str,help='The folder path to backup')
 parser.add_argument('target_path',type=str,help='The folder path to backup to')
 parser.add_argument('number_month_keep',type=int,help='The number of month prior to today to keep on the origin folder')
 
+
+def create_database(path):
+    df = pd.DataFrame(columns=["year","month","day","fullname"])
+    files = [f for f in os.listdir(path) if isfile(join(path,f))]
+
+    for f in files:
+        filedict = {}
+
+        gr = re.search('(20\d{2})([01]\d)([0-3]\d)',f).groups()
+
+        if len(gr) != 3:
+            raise VALUEERROR
+
+        year = filedict['year'] = int(gr[0])
+        month = filedict['month'] = int(gr[1])
+        day = filedict['day'] = int(gr[2])
+        filedict['fullname'] = f
+
+        datetime.datetime(year=year,month=month,day=day)
+
+        df = df.append(filedict, ignore_index=True)
+
+    df.to_csv("{}.csv".format(path.replace('\\','_')))
+    return df
+ 
+
 def delete(origin_path, keep_month):
     df = create_database(origin_path)
     cur_month = date.today().month
@@ -24,6 +50,7 @@ def delete(origin_path, keep_month):
     for file in tqdm(files_to_delete):
         os.remove(join(origin_path,file))
         print("deleted {}".format(file))
+
 
 def backup(origin_path, target_path):
 
@@ -36,42 +63,7 @@ def backup(origin_path, target_path):
     for file in tqdm(not_backed_up):
         shutil.copy(join(origin_path,file),join(target_path,file))
 
-def database_to_filenames(df):
-    filenames = []
-    for i in range(len(df)):
-        row = df.loc[i]
-        filename = "{}-{}{}{}-{}.{}".format(row['type'],str(row['year']),str(row['month']).zfill(2),str(row['day']).zfill(2),row['number'],row['ext'])
-        filenames.append(filename)
-
-    return filenames
-
-
-def create_database(path):
-    df = pd.DataFrame(columns=["year","month","day","fullname"])
-    files = [f for f in os.listdir(path) if isfile(join(path,f))]
-
-
-    for f in files:
-        filedict = {}
-
-        gr = re.search('(20\d{2})([01]\d)([0-3]\d)',f).groups()
-
-        if len(gr) != 3:
-            raise VALUEERROR
-
-        year = filedict['year'] = gr[0]
-        month = filedict['month'] = gr[1]
-        dat = filedict['day'] = gr[2]
-        filedict['fullname'] = f
-
-        datetime.datetime(year=year,month=month,day=day)
-
-        df = df.append(filedict, ignore_index=True)
-
-    df.to_csv("csv".format(path))
-    return df
-   
-   
+  
 def main():
     args = parser.parse_args()
 
