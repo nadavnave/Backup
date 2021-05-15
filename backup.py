@@ -1,4 +1,5 @@
 from os.path import isfile, join
+import re
 import os
 import shutil
 import pandas as pd
@@ -18,11 +19,10 @@ def delete(origin_path, keep_month):
     cur_year = date.today().year
     df_files_to_delete = df[ ~((df['month'] >= (cur_month - keep_month)) &
     (df['year'] == cur_year))]
-    files_to_delete = database_to_filenames(df_files_to_delete)
+    files_to_delete = df_files_to_delete['fullname'].list()
     for file in tqdm(files_to_delete):
         os.remove(join(origin_path,file))
         print("deleted {}".format(file))
- 
 
 def backup(origin_path, target_path):
 
@@ -46,22 +46,22 @@ def database_to_filenames(df):
 
 
 def create_database(path):
-    df = pd.DataFrame(columns=["type","year","month","day","number","ext"])
+    df = pd.DataFrame(columns=["year","month","day","fullname"])
     files = [f for f in os.listdir(path) if isfile(join(path,f))]
 
 
-    for file in files:
+    for f in files:
         filedict = {}
 
-        filename, extention = file.split(sep=".", maxsplit=2)
-        Type, Date,Number = filename.split(sep="-",maxsplit=3)
+        gr = re.search('(20\d{2})([01]\d{1})([0-3]\d{1})',f).groups()
 
-        filedict['ext'] = extention
-        filedict['number'] = Number
-        filedict['day'] = int(Date[-2:])
-        filedict['month'] = int(Date[4:-2])
-        filedict['year'] = int(Date[:4])
-        filedict['type'] = Type
+        if len(gr) != 3:
+            print("ERROR")
+
+        filedict['year'] = gr[0]
+        filedict['month'] = gr[1]
+        filedict['day'] = gr[2]
+        filedict['fullname'] = f
 
         df = df.append(filedict, ignore_index=True)
 
@@ -75,7 +75,9 @@ def main():
     origin_path = args.origin_path
     target_path = args.target_path
     number_month_keep = args.number_month_keep
-    backup(origin_path, target_path)
+    create_database(origin_path)
+    #backup(origin_path, target_path)
+
     #delete(origin_path,number_month_keep)
 
 
