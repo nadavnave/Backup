@@ -4,6 +4,7 @@ import os
 import shutil
 import pandas as pd
 import argparse
+import datetime
 from datetime import date
 from tqdm import tqdm
 
@@ -56,16 +57,18 @@ def create_database(path):
         gr = re.search('(20\d{2})([01]\d)([0-3]\d)',f).groups()
 
         if len(gr) != 3:
-            print("ERROR")
+            raise VALUEERROR
 
-        filedict['year'] = gr[0]
-        filedict['month'] = gr[1]
-        filedict['day'] = gr[2]
+        year = filedict['year'] = gr[0]
+        month = filedict['month'] = gr[1]
+        dat = filedict['day'] = gr[2]
         filedict['fullname'] = f
+
+        datetime.datetime(year=year,month=month,day=day)
 
         df = df.append(filedict, ignore_index=True)
 
-    df.to_csv("{}.csv".format(path))
+    df.to_csv("csv".format(path))
     return df
    
    
