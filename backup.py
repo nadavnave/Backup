@@ -36,7 +36,7 @@ def create_database(path):
 
         df = df.append(filedict, ignore_index=True)
 
-    df.to_csv("{}.csv".format(path.replace('\\','_')))
+    df.to_csv("{}.csv".format(path.replace('/','_')))
     return df
  
 
