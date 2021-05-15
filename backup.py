@@ -53,7 +53,7 @@ def create_database(path):
     for f in files:
         filedict = {}
 
-        gr = re.search('(20\d{2})([01]\d{1})([0-3]\d{1})',f).groups()
+        gr = re.search('(20\d{2})([01]\d)([0-3]\d)',f).groups()
 
         if len(gr) != 3:
             print("ERROR")
