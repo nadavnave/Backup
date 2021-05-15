@@ -1,10 +1,16 @@
-import os
 from os.path import isfile, join
+import os
 import shutil
-from sys import argv
 import pandas as pd
+import argparse
 from datetime import date
 from tqdm import tqdm
+
+parser = argparse.ArgumentParser(description="backup phone images and videos from WhatsApp and DCIM")
+
+parser.add_argument('origin_path',type=str,help='The folder path to backup')
+parser.add_argument('target_path',type=str,help='The folder path to backup to')
+parser.add_argument('number_month_keep',type=int,help='The number of month prior to today to keep on the origin folder')
 
 def delete(origin_path, keep_month):
     df = create_database(origin_path)
@@ -64,9 +70,11 @@ def create_database(path):
    
    
 def main():
-    origin_path= argv[1] 
-    target_path= argv[2] 
-    number_month_keep = int(argv[3])
+    args = parser.parse_args()
+
+    origin_path = args.origin_path
+    target_path = args.target_path
+    number_month_keep = args.number_month_keep
     backup(origin_path, target_path)
     #delete(origin_path,number_month_keep)
 
