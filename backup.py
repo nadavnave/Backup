@@ -6,6 +6,7 @@ import pandas as pd
 import argparse
 import datetime
 import ftplib
+import json
 from datetime import date
 from tqdm import tqdm
 
@@ -86,10 +87,14 @@ def main():
     port = args.port
     user = args.user
     passwd = args.password
-
     create_database(origin_path)
-    #backup(origin_path, target_path)
+    with open('conf.json','r') as f:
+        config = json.load(f)
 
+    for obj in config:
+        create_database(obj[0])
+
+    #backup(origin_path, target_path)
     #delete(origin_path,number_month_keep)
 
 
