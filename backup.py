@@ -5,6 +5,7 @@ import shutil
 import pandas as pd
 import argparse
 import datetime
+import json
 from datetime import date
 from tqdm import tqdm
 
@@ -66,13 +67,17 @@ def backup(origin_path, target_path):
   
 def main():
     args = parser.parse_args()
-
     origin_path = args.origin_path
     target_path = args.target_path
     number_month_keep = args.number_month_keep
     create_database(origin_path)
-    #backup(origin_path, target_path)
+    with open('conf.json','r') as f:
+        config = json.load(f)
 
+    for obj in config:
+        create_database(obj[0])
+
+    #backup(origin_path, target_path)
     #delete(origin_path,number_month_keep)
 
 
