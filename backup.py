@@ -5,15 +5,30 @@ import shutil
 import pandas as pd
 import argparse
 import datetime
+import ftplib
 from datetime import date
 from tqdm import tqdm
 
 parser = argparse.ArgumentParser(description="backup phone images and videos from WhatsApp and DCIM")
 
-parser.add_argument('origin_path',type=str,help='The folder path to backup')
-parser.add_argument('target_path',type=str,help='The folder path to backup to')
-parser.add_argument('number_month_keep',type=int,help='The number of month prior to today to keep on the origin folder')
+parser.add_argument('ftp_ip',type=str,help='The IP of the ftp server on the Android phone')
+parser.add_argument('ftp_port',type=int, help='The port of the ftp server on the Android phone')
+parser.add_argument('user',type=str, help='The user to connect to on the ftp server')
+parser.add_argument('password',type=str, help='The password to connect to on the ftp server')
 
+
+def ftp_dir_files(ftp,path):
+    ftp.cwd(path)
+    dir_lines = []
+    ftp.retrlines('LIST',dir_lines.append)
+    return [dir_line.split(' ')[-1] for dir_line in dir_lines if ftp_is_file(dir_line)]
+
+def ftp_is_file(dir_line):
+    permisstions = dir_line.split(' ')[0]
+    if permisstions[0] == 'd':
+        return False
+    return True
+    
 
 def create_database(path):
     df = pd.DataFrame(columns=["year","month","day","fullname"])
@@ -67,9 +82,11 @@ def backup(origin_path, target_path):
 def main():
     args = parser.parse_args()
 
-    origin_path = args.origin_path
-    target_path = args.target_path
-    number_month_keep = args.number_month_keep
+    ip = args.ftp_ip
+    port = args.port
+    user = args.user
+    passwd = args.password
+
     create_database(origin_path)
     #backup(origin_path, target_path)
 
