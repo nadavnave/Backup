@@ -106,7 +106,7 @@ def main():
     for obj in config:
         create_ftp_database(ftp, obj[0])
         backup(ftp, obj[0], obj[1])
-        delete(ftp, obj[0], obj[2])
+#        delete(ftp, obj[0], obj[2])
 
 
 
