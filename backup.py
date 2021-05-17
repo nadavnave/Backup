@@ -6,6 +6,7 @@ import shutil
 import pandas as pd
 import argparse
 import datetime
+from dateutil.relativedelta import relativedelta
 import ftplib
 import json
 import logging
@@ -37,13 +38,14 @@ def ftp_is_file(dir_line):
     
 
 def create_ftp_database(ftp, path):
-    df = pd.DataFrame(columns=["year","month", "day", "fullname"])
+    df = pd.DataFrame(columns=["date", "fullname"])
     files = ftp_dir_files(ftp, path)
 
-    print("Createing Database for {}".format(path))
-    for f in tqdm(files):
+    for f in tqdm(files,desc="Createing Database for {}".format(path)):
         filedict = {}
 
+        # Extract date from the filename from the format 'YYYYMMDD'
+        # anywhere in the filname
         regex_res = re.search('(20\d{2})([01]\d)([0-3]\d)', f)
         if regex_res == None:
             logging.error("Unable to parse file {}".format(f))
@@ -53,13 +55,13 @@ def create_ftp_database(ftp, path):
         gr = regex_res.groups()
 
 
-
-        year = filedict['year'] = int(gr[0])
-        month = filedict['month'] = int(gr[1])
-        day = filedict['day'] = int(gr[2])
+        year = int(gr[0])
+        month = int(gr[1])
+        day  = int(gr[2])
+        date = datetime.date(year=year, month=month, day=day)
+        filedict['date'] = date
         filedict['fullname'] = f
 
-        datetime.datetime(year=year, month=month, day=day)
 
         df = df.append(filedict, ignore_index=True)
 
@@ -69,10 +71,9 @@ def create_ftp_database(ftp, path):
 
 def delete(ftp, origin_path, keep_month):
     df = create_ftp_database(ftp, origin_path)
-    cur_month = date.today().month
-    cur_year = date.today().year
+    cur_date= date.today()
 
-    df_files_to_delete = df[ ~((df['month'] >= (cur_month - keep_month)) & (df['year'] == cur_year))]
+    df_files_to_delete = df[ df['date'] < (cur_date - relativedelta(months=keep_month)) ]
     files_to_delete = df_files_to_delete['fullname'].tolist()
 
     for file in tqdm(files_to_delete, desc="Deleting {}".format(origin_path)):
@@ -115,8 +116,6 @@ def main():
 
     for obj in config:
         logging.debug("Backuping {}".format(obj[0]))
-        sys.stdout.flush()
-        #create_ftp_database(ftp, obj[0])
          
         backup(ftp, obj[0], obj[1])
         
